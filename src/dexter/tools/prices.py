@@ -1,7 +1,7 @@
 from langchain.tools import tool
 from typing import Literal, Optional
 from pydantic import BaseModel, Field
-from dexter.tools.api import call_api
+from dexter.tools.api import call_api, USE_FINANCIAL_DATASETS, get_yf_price_snapshot, get_yf_prices
 
 class PriceSnapshotInput(BaseModel):
     """Input for get_price_snapshot."""
@@ -13,9 +13,13 @@ def get_price_snapshot(ticker: str) -> dict:
     Fetches the most recent price snapshot for a specific stock,
     including the latest price, trading volume, and other open, high, low, and close price data.
     """
-    params = {"ticker": ticker}
-    data = call_api("/prices/snapshot/", params)
-    return data.get("snapshot", {})
+    if USE_FINANCIAL_DATASETS:
+        params = {"ticker": ticker}
+        data = call_api("/prices/snapshot/", params)
+        return data.get("snapshot", {})
+    else:
+        # Use yfinance
+        return get_yf_price_snapshot(ticker)
 
 class PricesInput(BaseModel):
     """Input for get_prices."""
@@ -37,13 +41,17 @@ def get_prices(
     Retrieves historical price data for a stock over a specified date range,
     including open, high, low, close prices, and volume.
     """
-    params = {
-        "ticker": ticker,
-        "interval": interval,
-        "interval_multiplier": interval_multiplier,
-        "start_date": start_date,
-        "end_date": end_date,
-    }
-    
-    data = call_api("/prices/", params)
-    return data.get("prices", [])
+    if USE_FINANCIAL_DATASETS:
+        params = {
+            "ticker": ticker,
+            "interval": interval,
+            "interval_multiplier": interval_multiplier,
+            "start_date": start_date,
+            "end_date": end_date,
+        }
+
+        data = call_api("/prices/", params)
+        return data.get("prices", [])
+    else:
+        # Use yfinance
+        return get_yf_prices(ticker, interval, interval_multiplier, start_date, end_date)

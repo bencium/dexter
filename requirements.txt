@@ -1,0 +1,18 @@
+# Core Dependencies
+langchain>=0.3.27
+langchain-openai>=0.3.35
+openai>=2.2.0
+pydantic>=2.11.10
+python-dotenv>=1.1.1
+requests>=2.32.5
+
+# CLI Dependencies
+prompt-toolkit>=3.0.0
+
+# API Dependencies
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+
+# Financial Data Provider (FREE)
+yfinance>=0.2.49
+pandas>=2.0.0

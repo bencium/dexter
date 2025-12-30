@@ -1,7 +1,7 @@
 from langchain.tools import tool
 from typing import Literal, Optional
 from pydantic import BaseModel, Field
-from dexter.tools.api import call_api
+from dexter.tools.api import call_api, USE_FINANCIAL_DATASETS, get_yf_financial_metrics
 
 class FinancialMetricsSnapshotInput(BaseModel):
     """Input for get_financial_metrics_snapshot."""
@@ -10,13 +10,17 @@ class FinancialMetricsSnapshotInput(BaseModel):
 @tool(args_schema=FinancialMetricsSnapshotInput)
 def get_financial_metrics_snapshot(ticker: str) -> dict:
     """
-    Fetches a snapshot of the most current financial metrics for a company, 
-    including key indicators like market capitalization, P/E ratio, and dividend yield. 
+    Fetches a snapshot of the most current financial metrics for a company,
+    including key indicators like market capitalization, P/E ratio, and dividend yield.
     Useful for a quick overview of a company's financial health.
     """
-    params = {"ticker": ticker}
-    data = call_api("/financial-metrics/snapshot/", params)
-    return data.get("snapshot", {})
+    if USE_FINANCIAL_DATASETS:
+        params = {"ticker": ticker}
+        data = call_api("/financial-metrics/snapshot/", params)
+        return data.get("snapshot", {})
+    else:
+        # Use yfinance
+        return get_yf_financial_metrics(ticker)
 
 class FinancialMetricsInput(BaseModel):
     """Input for get_financial_metrics."""
@@ -41,25 +45,29 @@ def get_financial_metrics(
     report_period_lte: Optional[str] = None,
 ) -> dict:
     """
-    Retrieves historical financial metrics for a company, such as P/E ratio, 
-    revenue per share, and enterprise value, over a specified period. 
+    Retrieves historical financial metrics for a company, such as P/E ratio,
+    revenue per share, and enterprise value, over a specified period.
     Useful for trend analysis and historical performance evaluation.
     """
-    params = {
-        "ticker": ticker,
-        "period": period,
-        "limit": limit,
-    }
-    if report_period:
-        params["report_period"] = report_period
-    if report_period_gt:
-        params["report_period_gt"] = report_period_gt
-    if report_period_gte:
-        params["report_period_gte"] = report_period_gte
-    if report_period_lt:
-        params["report_period_lt"] = report_period_lt
-    if report_period_lte:
-        params["report_period_lte"] = report_period_lte
-    
-    data = call_api("/financial-metrics/", params)
-    return data.get("financial_metrics", [])
+    if USE_FINANCIAL_DATASETS:
+        params = {
+            "ticker": ticker,
+            "period": period,
+            "limit": limit,
+        }
+        if report_period:
+            params["report_period"] = report_period
+        if report_period_gt:
+            params["report_period_gt"] = report_period_gt
+        if report_period_gte:
+            params["report_period_gte"] = report_period_gte
+        if report_period_lt:
+            params["report_period_lt"] = report_period_lt
+        if report_period_lte:
+            params["report_period_lte"] = report_period_lte
+
+        data = call_api("/financial-metrics/", params)
+        return data.get("financial_metrics", [])
+    else:
+        # Use yfinance
+        return get_yf_financial_metrics(ticker, period)

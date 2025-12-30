@@ -1,0 +1,40 @@
+# Fly.io configuration for Dexter API
+# Documentation: https://fly.io/docs/reference/configuration/
+
+app = "dexter-api"
+primary_region = "iad"  # Washington DC - change to your preferred region
+
+# Build configuration
+[build]
+
+# HTTP service configuration
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = true  # Auto-stop when idle to save money
+  auto_start_machines = true # Auto-start on request
+  min_machines_running = 0   # Scale to zero when idle (free tier friendly)
+  processes = ["app"]
+
+  # Health checks
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval = "30s"
+    method = "GET"
+    timeout = "5s"
+    path = "/api/health"
+
+# VM configuration - optimized for minimal cost
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 256  # Minimal memory for free tier
+
+# Environment variables (non-sensitive)
+[env]
+  PORT = "8000"
+  PYTHONUNBUFFERED = "1"
+
+# Deploy configuration
+[deploy]
+  strategy = "immediate"

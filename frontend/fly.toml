@@ -1,0 +1,24 @@
+# Fly.io configuration for Dexter Frontend
+app = "dexter-frontend"
+primary_region = "iad"  # Washington DC
+
+# Build configuration
+[build]
+
+# HTTP service configuration
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+
+# VM configuration - minimal for static files
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 256
+
+# Environment variables
+[env]
+  PORT = "8080"
